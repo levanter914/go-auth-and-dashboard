@@ -14,7 +14,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/levanter914/login-page.git/graph/model"
+	"github.com/levanter914/login-page/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -296,7 +296,7 @@ func (ec *executionContext) field_Mutation_createTodo_argsInput(
 ) (model.NewTodo, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNNewTodo2githubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐNewTodo(ctx, tmp)
+		return ec.unmarshalNNewTodo2githubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐNewTodo(ctx, tmp)
 	}
 
 	var zeroVal model.NewTodo
@@ -454,7 +454,7 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.Todo)
 	fc.Result = res
-	return ec.marshalNTodo2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -519,7 +519,7 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*model.Todo)
 	fc.Result = res
-	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐTodoᚄ(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐTodoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_todos(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -836,7 +836,7 @@ func (ec *executionContext) _Todo_user(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Todo_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3523,7 +3523,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNNewTodo2githubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐNewTodo(ctx context.Context, v any) (model.NewTodo, error) {
+func (ec *executionContext) unmarshalNNewTodo2githubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐNewTodo(ctx context.Context, v any) (model.NewTodo, error) {
 	res, err := ec.unmarshalInputNewTodo(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -3543,11 +3543,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNTodo2githubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v model.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2githubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v model.Todo) graphql.Marshaler {
 	return ec._Todo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐTodoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐTodoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Todo) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3571,7 +3571,7 @@ func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋlevanter914ᚋlogi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTodo2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐTodo(ctx, sel, v[i])
+			ret[i] = ec.marshalNTodo2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐTodo(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3591,7 +3591,7 @@ func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋlevanter914ᚋlogi
 	return ret
 }
 
-func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v *model.Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v *model.Todo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -3601,7 +3601,7 @@ func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋlevanter914ᚋlogin�
 	return ec._Todo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚗgitᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
