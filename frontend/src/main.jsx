@@ -6,15 +6,17 @@ import {
   InMemoryCache,
   ApolloProvider,
 } from '@apollo/client';
+import "./index.css";
 
 const client = new ApolloClient({
   uri: 'http://localhost:8080/query',
   cache: new InMemoryCache(),
 });
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <ApolloProvider client={client}>
-    <App />
-  </ApolloProvider>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <ApolloProvider client={client}>
+      <App />
+    </ApolloProvider>
+  </React.StrictMode>
 );

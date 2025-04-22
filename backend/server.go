@@ -34,7 +34,7 @@ func main() {
 	})
 
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // your React app origin
+		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"POST", "GET", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
