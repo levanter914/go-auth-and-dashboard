@@ -7,11 +7,14 @@ package graph
 import (
 	"context"
 	"errors"
-
+	"time"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/levanter914/login-page/backend/graph/model"
+	"os"
 )
 
-// Login is the resolver for the login field.
+var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+
 func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
 	if email != "user@example.com" || password != "password123" {
 		return nil, errors.New("invalid credentials")
@@ -24,14 +27,34 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 		Name:  &name,
 	}
 
+
+	claims := jwt.MapClaims{
+		"userID": user.ID,
+		"exp":    time.Now().Add(time.Hour * 24).Unix(), 
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return nil, errors.New("could not sign JWT")
+	}
+
 	return &model.AuthPayload{
-		Token: "dummy-jwt-token",
+		Token: signedToken,
 		User:  user,
 	}, nil
 }
 
-// Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
+	userID, ok := GetUserIDFromContext(ctx)
+	if !ok {
+		return nil, errors.New("unauthenticated")
+	}
+
+	if userID != "1" {
+		return nil, errors.New("user not found")
+	}
+
 	name := "John Doe"
 	return &model.User{
 		ID:    "1",
@@ -40,7 +63,6 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	}, nil
 }
 
-// Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
