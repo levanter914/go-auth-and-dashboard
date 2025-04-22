@@ -22,6 +22,7 @@ func init() {
 	if err != nil {
 		log.Println("No .env.local file found or failed to load")
 	}
+	graph.InitDB()
 }
 
 func main() {

@@ -42,6 +42,8 @@ export default function Login() {
         throw new Error(data.errors[0].message);
       }
 
+      localStorage.setItem('token', data.data.login.token); 
+
       console.log("Login successful:", data.data.login);
       alert("Login successful!");
     } catch (err) {

@@ -11,39 +11,56 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/levanter914/login-page/backend/graph/model"
 	"os"
+	"log"
 )
 
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
-	if email != "user@example.com" || password != "password123" {
-		return nil, errors.New("invalid credentials")
-	}
+    log.Printf("Received email: %s", email)  // Log email for visibility
 
-	name := "John Doe"
-	user := &model.User{
-		ID:    "1",
-		Email: "user@example.com",
-		Name:  &name,
-	}
+    row := DB.QueryRow("SELECT id, username, password FROM users WHERE email=$1", email)
 
+    var id, username, hashedPassword string
+    err := row.Scan(&id, &username, &hashedPassword)
+    if err != nil {
+        log.Printf("Error scanning user: %v", err)  // Log error details
+        return nil, errors.New("user not found")
+    }
 
-	claims := jwt.MapClaims{
-		"userID": user.ID,
-		"exp":    time.Now().Add(time.Hour * 24).Unix(), 
-	}
+    log.Printf("User found: %s", username)  // Log user name
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString(jwtSecret)
-	if err != nil {
-		return nil, errors.New("could not sign JWT")
-	}
+    if password != hashedPassword {
+        // In production, replace this with password hash check
+        log.Printf("Password mismatch for email: %s", email)  // Log password mismatch
+        return nil, errors.New("invalid password")
+    }
 
-	return &model.AuthPayload{
-		Token: signedToken,
-		User:  user,
-	}, nil
+    user := &model.User{
+        ID:    id,
+        Email: email,
+        Name:  &username,
+    }
+
+    claims := jwt.MapClaims{
+        "userID": user.ID,
+        "exp":    time.Now().Add(time.Hour * 24).Unix(),
+    }
+
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    signedToken, err := token.SignedString(jwtSecret)
+    if err != nil {
+        log.Printf("Error signing token: %v", err)  // Log error signing token
+        return nil, errors.New("could not sign JWT")
+    }
+
+    return &model.AuthPayload{
+        Token: signedToken,
+        User:  user,
+    }, nil
 }
+
+
 
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	userID, ok := GetUserIDFromContext(ctx)
