@@ -4,6 +4,8 @@ go 1.24.2
 
 require github.com/99designs/gqlgen v0.17.72
 
+require github.com/rs/cors v1.11.1
+
 require (
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
