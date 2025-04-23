@@ -42,7 +42,7 @@ export default function Login() {
         throw new Error(data.errors[0].message);
       }
 
-      localStorage.setItem('token', data.data.login.token); 
+      localStorage.setItem('token', data.data.login.token);
 
       console.log("Login successful:", data.data.login);
       alert("Login successful!");
@@ -51,6 +51,10 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSignupRedirect = () => {
+    window.location.href = "/signup";
   };
 
   return (
@@ -89,6 +93,16 @@ export default function Login() {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
+
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={handleSignupRedirect}
+              className="text-indigo-600 hover:text-indigo-700"
+            >
+              Don't have an account? Sign up
+            </button>
+          </div>
         </form>
       </div>
     </div>
