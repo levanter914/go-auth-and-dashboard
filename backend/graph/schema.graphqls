@@ -10,7 +10,11 @@ type Mutation {
 type User {
   id: ID!
   email: String!
-  name: String
+  firstName: String
+  lastName: String
+  phoneNumber: String
+  country: String
+  job: String
 }
 
 type AuthPayload {
@@ -19,7 +23,11 @@ type AuthPayload {
 }
 
 input SignupInput {
-  name: String!
   email: String!
   password: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String
+  country: String
+  job: String
 }

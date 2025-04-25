@@ -14,13 +14,21 @@ type Query struct {
 }
 
 type SignupInput struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email       string  `json:"email"`
+	Password    string  `json:"password"`
+	FirstName   string  `json:"firstName"`
+	LastName    string  `json:"lastName"`
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
+	Country     *string `json:"country,omitempty"`
+	Job         *string `json:"job,omitempty"`
 }
 
 type User struct {
-	ID    string  `json:"id"`
-	Email string  `json:"email"`
-	Name  *string `json:"name,omitempty"`
+	ID          string  `json:"id"`
+	Email       string  `json:"email"`
+	FirstName   *string `json:"firstName,omitempty"`
+	LastName    *string `json:"lastName,omitempty"`
+	PhoneNumber *string `json:"phoneNumber,omitempty"`
+	Country     *string `json:"country,omitempty"`
+	Job         *string `json:"job,omitempty"`
 }
