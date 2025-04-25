@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import "tailwindcss";
 import { useNavigate } from "react-router-dom";
 
-
 export default function Signup() {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [country, setCountry] = useState("");
+  const [job, setJob] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -23,13 +26,27 @@ export default function Signup() {
           user {
             id
             email
-            name
+            firstName
+            lastName
+            phoneNumber
+            country
+            job
           }
         }
       }
     `;
 
-    const variables = { input: { name, email, password } };
+    const variables = {
+      input: {
+        firstName,
+        lastName,
+        email,
+        password,
+        phoneNumber,
+        country,
+        job,
+      },
+    };
 
     try {
       const res = await fetch("http://localhost:8080/query", {
@@ -50,7 +67,7 @@ export default function Signup() {
 
       console.log("Signup successful:", data.data.signup);
       alert("Signup successful! Redirecting to login...");
-      navigate("/login");  // Redirect to login page
+      navigate("/"); // Redirect to login page
     } catch (err) {
       setError(err.message);
     } finally {
@@ -64,12 +81,23 @@ export default function Signup() {
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h2>
         <form onSubmit={handleSignup} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm font-medium text-gray-700">First Name</label>
             <input
               type="text"
               className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Last Name</label>
+            <input
+              type="text"
+              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
               required
             />
           </div>
@@ -93,6 +121,36 @@ export default function Signup() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+            <input
+              type="text"
+              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Country</label>
+            <input
+              type="text"
+              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Job</label>
+            <input
+              type="text"
+              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={job}
+              onChange={(e) => setJob(e.target.value)}
             />
           </div>
 

@@ -19,7 +19,11 @@ export default function Login() {
           user {
             id
             email
-            name
+            firstName
+            lastName
+            phoneNumber
+            country
+            job
           }
         }
       }
@@ -44,8 +48,12 @@ export default function Login() {
 
       localStorage.setItem('token', data.data.login.token);
 
+      // Log the user data from the response for verification
       console.log("Login successful:", data.data.login);
+
       alert("Login successful!");
+
+      // Redirect to another page or handle the state as needed
     } catch (err) {
       setError(err.message);
     } finally {
