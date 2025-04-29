@@ -6,24 +6,43 @@ export default function Dashboard({ user }) {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/"); // Redirect to login after logout
+    localStorage.removeItem("user");
+    navigate("/");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-8">
-      <div className="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto text-gray-800">
-        <h2 className="text-2xl font-bold mb-4">Welcome, {user.firstName}!</h2>
-        <p><strong>Email:</strong> {user.email}</p>
-        <p><strong>Phone:</strong> {user.phoneNumber || "N/A"}</p>
-        <p><strong>Country:</strong> {user.country || "N/A"}</p>
-        <p><strong>Job:</strong> {user.job || "N/A"}</p>
-
+    <div className="min-h-screen bg-white text-gray-800 p-6 relative">
+      <div className="flex justify-between items-center mb-12">
+        <h1 className="text-3xl font-bold italic">Dashboard</h1>
         <button
           onClick={handleLogout}
-          className="mt-6 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+          className="bg-red-500 hover:bg-red-800 text-white px-4 py-2 rounded-lg"
         >
-         Logout
+          Logout
         </button>
+      </div>
+
+      {/* Centered Card */}
+      <div className="flex justify-center">
+        <div className="bg-gray-50 p-8 rounded-2xl shadow-lg w-full max-w-md space-y-4">
+          <h2 className="text-xl font-bold mb-4 text-center">
+            Welcome, <i>{user.firstName}!</i>
+          </h2>
+          <div className="space-y-2">
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
+            <p>
+              <strong>Phone:</strong> {user.phoneNumber || "N/A"}
+            </p>
+            <p>
+              <strong>Country:</strong> {user.country || "N/A"}
+            </p>
+            <p>
+              <strong>Job:</strong> {user.job || "N/A"}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

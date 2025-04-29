@@ -1,36 +1,84 @@
 import React, { useState } from "react";
-import "tailwindcss";
 import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [country, setCountry] = useState("");
-  const [job, setJob] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    country: "",
+    job: "",
+  });
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const nextStep = () => {
     setError("");
+
+    if (step === 1) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        setError("Please enter a valid email.");
+        return;
+      }
+      if (formData.password.length < 6) {
+        setError("Password must be at least 6 characters.");
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.firstName.trim() || !formData.lastName.trim()) {
+        setError("First name and last name are required.");
+        return;
+      }
+    }
+
+    if (step === 3) {
+      const phoneRegex = /^[0-9]{10,}$/;
+      if (!phoneRegex.test(formData.phoneNumber)) {
+        setError("Enter a valid phone number with at least 10 digits.");
+        return;
+      }
+    }
+
+    if (step === 4) {
+      if (!formData.country.trim() || !formData.job.trim()) {
+        setError("Country and job fields cannot be empty.");
+        return;
+      }
+    }
+
+    setStep(step + 1);
+  };
+
+  const prevStep = () => setStep(step - 1);
+
+  const handleSubmit = async () => {
     setLoading(true);
+    setError("");
 
     const query = `
       mutation Signup($input: SignupInput!) {
         signup(input: $input) {
           token
           user {
-            id
-            email
-            firstName
-            lastName
-            phoneNumber
-            country
-            job
+            id email firstName lastName phoneNumber country job
           }
         }
       }
@@ -38,36 +86,29 @@ export default function Signup() {
 
     const variables = {
       input: {
-        firstName,
-        lastName,
-        email,
-        password,
-        phoneNumber,
-        country,
-        job,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phoneNumber,
+        country: formData.country,
+        job: formData.job,
       },
     };
 
     try {
       const res = await fetch("http://localhost:8080/query", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, variables }),
       });
 
       const data = await res.json();
+      if (data.errors) throw new Error(data.errors[0].message);
 
-      if (data.errors) {
-        throw new Error(data.errors[0].message);
-      }
-
-      localStorage.setItem('token', data.data.signup.token);
-
-      console.log("Signup successful:", data.data.signup);
-      alert("Signup successful! Redirecting to login...");
-      navigate("/"); // Redirect to login page
+      localStorage.setItem("token", data.data.signup.token);
+      alert("Signup successful!");
+      navigate("/");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -76,94 +117,139 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h2>
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">First Name</label>
-            <input
-              type="text"
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              required
-            />
+    <div className="min-h-screen bg-white flex items-center justify-center px-4">
+      <div className="bg-gray-50 p-8 rounded-2xl shadow-xl w-full max-w-md space-y-6">
+        <h2 className="text-2xl font-bold text-center text-gray-800">Sign Up</h2>
+
+        <div className="space-y-4">
+          {step === 1 && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => handleChange("password", e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <input
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">First Name</label>
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => handleChange("firstName", e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => handleChange("lastName", e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+            </>
+          )}
+
+          {step === 3 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+              <input
+                type="text"
+                value={formData.phoneNumber}
+                onChange={(e) => handleChange("phoneNumber", e.target.value)}
+                className="w-full mt-1 px-3 py-2 border rounded-md"
+              />
+            </div>
+          )}
+
+          {step === 4 && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Country</label>
+                <input
+                  type="text"
+                  value={formData.country}
+                  onChange={(e) => handleChange("country", e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Job</label>
+                <input
+                  type="text"
+                  value={formData.job}
+                  onChange={(e) => handleChange("job", e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                />
+              </div>
+            </>
+          )}
+
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+          <div className="flex justify-between mt-4">
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={prevStep}
+                className="text-sm text-gray-600 hover:underline"
+              >
+                Back
+              </button>
+            )}
+
+            {step < 4 ? (
+              <button
+                type="button"
+                onClick={nextStep}
+                className="ml-auto bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="ml-auto bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                disabled={loading}
+              >
+                {loading ? "Signing Up..." : "Submit"}
+              </button>
+            )}
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Last Name</label>
-            <input
-              type="text"
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-            <input
-              type="text"
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Country</label>
-            <input
-              type="text"
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Job</label>
-            <input
-              type="text"
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={job}
-              onChange={(e) => setJob(e.target.value)}
-            />
-          </div>
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-200"
-          >
-            {loading ? "Signing up..." : "Sign Up"}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
