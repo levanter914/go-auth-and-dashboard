@@ -1,14 +1,21 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Dashboard({ user }) {
+export default function Dashboard({ user, setUser }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    navigate("/");
+    setUser(null);
+    navigate("/login");
   };
+
+  if (!user) {
+    // Optional: redirect early if user is gone
+    navigate("/login");
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-white text-gray-800 p-6 relative">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Login({setUser}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -9,7 +9,7 @@ export default function Login() {
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      navigate("/dashboard");
+      navigate("/");
     }
   }, [navigate]);
 
@@ -46,7 +46,8 @@ export default function Login() {
       const { token, user } = result.data.login;
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-      navigate("/dashboard");
+      setUser(user);
+      navigate("/");
     } else {
       setError("Invalid credentials, please try again.");
     }
