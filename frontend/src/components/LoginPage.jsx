@@ -1,116 +1,91 @@
-import React, { useState } from "react";
-import "tailwindcss";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Check if the user is already logged in (token exists)
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const query = `
-      mutation Login($email: String!, $password: String!) {
-        login(email: $email, password: $password) {
-          token
-          user {
-            id
-            email
-            firstName
-            lastName
-            phoneNumber
-            country
-            job
+  
+    const response = await fetch("http://localhost:8080/query", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: `
+          mutation Login($email: String!, $password: String!) {
+            login(email: $email, password: $password) {
+              token
+              user {
+                id
+                email
+                firstName
+                lastName
+                phoneNumber
+                country
+                job
+              }
+            }
           }
-        }
-      }
-    `;
-
-    const variables = { email, password };
-
-    try {
-      const res = await fetch("http://localhost:8080/query", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query, variables }),
-      });
-
-      const data = await res.json();
-
-      if (data.errors) {
-        throw new Error(data.errors[0].message);
-      }
-
-      localStorage.setItem('token', data.data.login.token);
-
-      // Log the user data from the response for verification
-      console.log("Login successful:", data.data.login);
-
-      alert("Login successful!");
-
-      // Redirect to another page or handle the state as needed
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+        `,
+        variables: { email, password },
+      }),
+    });
+  
+    const result = await response.json();
+    console.log(result);  // Log the full response to see the result
+  
+    if (result.data?.login?.token) {
+      const { token, user } = result.data.login;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));  // Store user data in localStorage
+      navigate("/dashboard");
+    } else {
+      setError("Invalid credentials, please try again.");
     }
   };
-
-  const handleSignupRedirect = () => {
-    window.location.href = "/signup";
-  };
+  
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-white p-8 rounded shadow-lg w-80">
+        <h2 className="text-2xl font-bold mb-4">Login</h2>
+        <form onSubmit={handleLogin}>
+          <div className="mb-4">
+            <label>Email</label>
             <input
               type="email"
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 mt-1 border rounded"
               required
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+          <div className="mb-4">
+            <label>Password</label>
             <input
               type="password"
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 mt-1 border rounded"
               required
             />
           </div>
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-200"
-          >
-            {loading ? "Logging in..." : "Login"}
+          <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">
+            Login
           </button>
-
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={handleSignupRedirect}
-              className="text-indigo-600 hover:text-indigo-700"
-            >
-              Don't have an account? Sign up
-            </button>
-          </div>
+          {error && <p className="text-red-600 mt-2">{error}</p>}
         </form>
       </div>
     </div>

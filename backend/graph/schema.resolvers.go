@@ -17,45 +17,50 @@ import (
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
-	row := DB.QueryRow(`
-		SELECT a.id, a.password, up.first_name, up.last_name, up.phone_number, up.country, up.job
-		FROM auth a
-		JOIN user_profile up ON a.id = up.id
-		WHERE a.email = $1
-	`, email)
+    // Query the database for user credentials based on email
+    row := DB.QueryRow(`
+        SELECT a.id, a.password, up.first_name, up.last_name, up.phone_number, up.country, up.job
+        FROM auth a
+        JOIN user_profile up ON a.id = up.id
+        WHERE a.email = $1
+    `, email)
 
-	var id int64
-	var hashedPassword string
-	var firstName, lastName, phoneNumber, country, job sql.NullString
+    var id int64
+    var hashedPassword string
+    var firstName, lastName, phoneNumber, country, job sql.NullString
 
-	err := row.Scan(&id, &hashedPassword, &firstName, &lastName, &phoneNumber, &country, &job)
-	if err != nil {
-		return nil, errors.New("invalid credentials")
-	}
+    err := row.Scan(&id, &hashedPassword, &firstName, &lastName, &phoneNumber, &country, &job)
+    if err != nil {
+        return nil, errors.New("invalid credentials")
+    }
 
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err != nil {
-		return nil, errors.New("invalid password")
-	}
+    // Compare the provided password with the hashed password
+    err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+    if err != nil {
+        return nil, errors.New("invalid password")
+    }
 
-	token, err := utils.GenerateJWT(fmt.Sprintf("%d", id))
-	if err != nil {
-		return nil, err
-	}
+    // Generate a JWT token
+    token, err := utils.GenerateJWT(fmt.Sprintf("%d", id))
+    if err != nil {
+        return nil, err
+    }
 
-	return &model.AuthPayload{
-		Token: token,
-		User: &model.User{
-			ID:          fmt.Sprintf("%d", id),
-			Email:       email,
-			FirstName:   nullStringToPtr(firstName),
-			LastName:    nullStringToPtr(lastName),
-			PhoneNumber: nullStringToPtr(phoneNumber),
-			Country:     nullStringToPtr(country),
-			Job:         nullStringToPtr(job),
-		},
-	}, nil
+    // Return the AuthPayload with the token and user information
+    return &model.AuthPayload{
+        Token: token,
+        User: &model.User{
+            ID:          fmt.Sprintf("%d", id),
+            Email:       email,
+            FirstName:   nullStringToPtr(firstName),
+            LastName:    nullStringToPtr(lastName),
+            PhoneNumber: nullStringToPtr(phoneNumber),
+            Country:     nullStringToPtr(country),
+            Job:         nullStringToPtr(job),
+        },
+    }, nil
 }
+
 
 // Signup is the resolver for the signup field.
 func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) (*model.AuthPayload, error) {
