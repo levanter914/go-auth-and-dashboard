@@ -15,7 +15,7 @@ export default function Signup() {
     country: "",
     job: "",
   });
-
+  const [profilePic, setProfilePic] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -72,49 +72,111 @@ export default function Signup() {
   const handleSubmit = async () => {
     setLoading(true);
     setError("");
-
-    const query = `
-      mutation Signup($input: SignupInput!) {
-        signup(input: $input) {
-          token
-          user {
-            id email firstName lastName phoneNumber country job
+  
+    let imageUrl = "";
+  
+    try {
+      if (profilePic) {
+        const fileName = `${formData.email}-${Date.now()}.jpg`;
+  
+        // Get presigned URL from backend
+        const presignRes = await fetch("http://localhost:8080/query", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: `
+              query GetPresignedURL($fileName: String!) {
+                getPresignedURL(fileName: $fileName)
+              }
+            `,
+            variables: { fileName },
+          }),
+        });
+  
+        const presignData = await presignRes.json();
+        const uploadUrl = presignData.data.getPresignedURL;
+  
+        if (!uploadUrl) {
+          throw new Error("Failed to get upload URL from server");
+        }
+  
+        // Upload to S3 using presigned URL
+        const uploadRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "image/jpeg",
+            //"x-amz-acl": "public-read",
+          },
+          body: profilePic,
+        });
+  
+        console.log("Upload status:", uploadRes.status);
+  
+        if (!uploadRes.ok) {
+          throw new Error("Failed to upload image to S3");
+        }
+  
+        // Construct public image URL
+        const bucketName = "levanter914-s3-user-profile-pictures";
+        imageUrl = `https://${bucketName}.s3.amazonaws.com/${fileName}`;
+        console.log("Profile URL:", imageUrl);
+      }
+  
+      // GraphQL Signup Mutation
+      const query = `
+        mutation Signup($input: SignupInput!) {
+          signup(input: $input) {
+            token
+            user {
+              id
+              email
+              firstName
+              lastName
+              phoneNumber
+              country
+              job
+              profilePicURL
+            }
           }
         }
-      }
-    `;
-
-    const variables = {
-      input: {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        phoneNumber: formData.phoneNumber,
-        country: formData.country,
-        job: formData.job,
-      },
-    };
-
-    try {
+      `;
+  
+      const variables = {
+        input: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          phoneNumber: formData.phoneNumber,
+          country: formData.country,
+          job: formData.job,
+          profilePicURL: imageUrl,
+        },
+      };
+  
       const res = await fetch("http://localhost:8080/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, variables }),
       });
-
+  
       const data = await res.json();
-      if (data.errors) throw new Error(data.errors[0].message);
-
+  
+      if (data.errors) {
+        throw new Error(data.errors[0].message);
+      }
+  
       localStorage.setItem("token", data.data.signup.token);
       alert("Signup successful!");
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      console.error("Signup error:", err);
+      setError(err.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
@@ -159,6 +221,15 @@ export default function Signup() {
 
           {step === 2 && (
             <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setProfilePic(e.target.files[0])}
+                  required
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">First Name</label>
                 <input

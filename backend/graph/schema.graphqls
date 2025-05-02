@@ -1,10 +1,14 @@
-type Query {
-  me: User!
-}
+# schema.graphql
 
-type Mutation {
-  login(email: String!, password: String!): AuthPayload!
-  signup(input: SignupInput!): AuthPayload!
+input SignupInput {
+  email: String!
+  password: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String
+  country: String
+  job: String
+  profilePicURL: String 
 }
 
 type User {
@@ -15,6 +19,7 @@ type User {
   phoneNumber: String
   country: String
   job: String
+  profilePicURL: String
 }
 
 type AuthPayload {
@@ -22,12 +27,18 @@ type AuthPayload {
   user: User!
 }
 
-input SignupInput {
+type Query {
+  me: User!
+  getPresignedURL(fileName: String!): String!
+}
+
+input LoginInput {
   email: String!
   password: String!
-  firstName: String!
-  lastName: String!
-  phoneNumber: String
-  country: String
-  job: String
 }
+
+type Mutation {
+  signup(input: SignupInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+}
+

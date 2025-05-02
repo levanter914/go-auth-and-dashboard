@@ -9,59 +9,18 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+    //"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/levanter914/login-page/backend/graph/model"
 	"github.com/levanter914/login-page/backend/graph/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
-    // Query the database for user credentials based on email
-    row := DB.QueryRow(`
-        SELECT a.id, a.password, up.first_name, up.last_name, up.phone_number, up.country, up.job
-        FROM auth a
-        JOIN user_profile up ON a.id = up.id
-        WHERE a.email = $1
-    `, email)
-
-    var id int64
-    var hashedPassword string
-    var firstName, lastName, phoneNumber, country, job sql.NullString
-
-    err := row.Scan(&id, &hashedPassword, &firstName, &lastName, &phoneNumber, &country, &job)
-    if err != nil {
-        return nil, errors.New("invalid credentials")
-    }
-
-    // Compare the provided password with the hashed password
-    err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-    if err != nil {
-        return nil, errors.New("invalid password")
-    }
-
-    // Generate a JWT token
-    token, err := utils.GenerateJWT(fmt.Sprintf("%d", id))
-    if err != nil {
-        return nil, err
-    }
-
-    // Return the AuthPayload with the token and user information
-    return &model.AuthPayload{
-        Token: token,
-        User: &model.User{
-            ID:          fmt.Sprintf("%d", id),
-            Email:       email,
-            FirstName:   nullStringToPtr(firstName),
-            LastName:    nullStringToPtr(lastName),
-            PhoneNumber: nullStringToPtr(phoneNumber),
-            Country:     nullStringToPtr(country),
-            Job:         nullStringToPtr(job),
-        },
-    }, nil
-}
-
-
+// Signup is the resolver for the signup field.
 // Signup is the resolver for the signup field.
 func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) (*model.AuthPayload, error) {
 	if len(input.Password) < 6 {
@@ -96,9 +55,9 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) 
 
 	// Insert into profile
 	_, err = DB.Exec(`
-		INSERT INTO user_profile (id, first_name, last_name, phone_number, country, job)
-		VALUES ($1, $2, $3, $4, $5, $6)
-	`, userID, input.FirstName, input.LastName, input.PhoneNumber, input.Country, input.Job)
+		INSERT INTO user_profile (id, first_name, last_name, phone_number, country, job, profilepicurl)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`, userID, input.FirstName, input.LastName, input.PhoneNumber, input.Country, input.Job, input.ProfilePicURL)
 	if err != nil {
 		return nil, err
 	}
@@ -112,13 +71,61 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) 
 	return &model.AuthPayload{
 		Token: token,
 		User: &model.User{
-			ID:          fmt.Sprintf("%d", userID),
-			Email:       input.Email,
-			FirstName:   &input.FirstName,
-			LastName:    &input.LastName,
-			PhoneNumber: input.PhoneNumber,
-			Country:     input.Country,
-			Job:         input.Job,
+			ID:            fmt.Sprintf("%d", userID),
+			Email:         input.Email,
+			FirstName:     &input.FirstName,
+			LastName:      &input.LastName,
+			PhoneNumber:   input.PhoneNumber,
+			Country:       input.Country,
+			Job:           input.Job,
+			ProfilePicURL: input.ProfilePicURL, // Update to ProfilePicURL
+		},
+	}, nil
+}
+
+// Login is the resolver for the login field.
+func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*model.AuthPayload, error) {
+	// Query the database for user credentials based on email
+	row := DB.QueryRow(`
+        SELECT a.id, a.password, up.first_name, up.last_name, up.phone_number, up.country, up.job, up.profilepicurl
+        FROM auth a
+        JOIN user_profile up ON a.id = up.id
+        WHERE a.email = $1
+    `, input.Email)
+
+	var id int64
+	var hashedPassword string
+	var firstName, lastName, phoneNumber, country, job, profilePicURL sql.NullString
+
+	err := row.Scan(&id, &hashedPassword, &firstName, &lastName, &phoneNumber, &country, &job, &profilePicURL)
+	if err != nil {
+		return nil, errors.New("invalid credentials")
+	}
+
+	// Compare the provided password with the hashed password
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(input.Password))
+	if err != nil {
+		return nil, errors.New("invalid password")
+	}
+
+	// Generate a JWT token
+	token, err := utils.GenerateJWT(fmt.Sprintf("%d", id))
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the AuthPayload with the token and user information
+	return &model.AuthPayload{
+		Token: token,
+		User: &model.User{
+			ID:            fmt.Sprintf("%d", id),
+			Email:         input.Email,
+			FirstName:     nullStringToPtr(firstName),
+			LastName:      nullStringToPtr(lastName),
+			PhoneNumber:   nullStringToPtr(phoneNumber),
+			Country:       nullStringToPtr(country),
+			Job:           nullStringToPtr(job),
+			ProfilePicURL: nullStringToPtr(profilePicURL),
 		},
 	}, nil
 }
@@ -131,29 +138,58 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	}
 
 	row := DB.QueryRow(`
-		SELECT a.email, up.first_name, up.last_name, up.phone_number, up.country, up.job
+		SELECT a.email, up.first_name, up.last_name, up.phone_number, up.country, up.job, up.profilepicurl
 		FROM auth a
 		JOIN user_profile up ON a.id = up.id
 		WHERE a.id = $1
 	`, userID)
 
 	var email string
-	var firstName, lastName, phoneNumber, country, job sql.NullString
+	var firstName, lastName, phoneNumber, country, job, profileImageURL sql.NullString
 
-	err := row.Scan(&email, &firstName, &lastName, &phoneNumber, &country, &job)
+	err := row.Scan(&email, &firstName, &lastName, &phoneNumber, &country, &job, &profileImageURL)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
 
 	return &model.User{
-		ID:          userID,
-		Email:       email,
-		FirstName:   nullStringToPtr(firstName),
-		LastName:    nullStringToPtr(lastName),
-		PhoneNumber: nullStringToPtr(phoneNumber),
-		Country:     nullStringToPtr(country),
-		Job:         nullStringToPtr(job),
+		ID:            userID,
+		Email:         email,
+		FirstName:     nullStringToPtr(firstName),
+		LastName:      nullStringToPtr(lastName),
+		PhoneNumber:   nullStringToPtr(phoneNumber),
+		Country:       nullStringToPtr(country),
+		Job:           nullStringToPtr(job),
+		ProfilePicURL: nullStringToPtr(profileImageURL), // Updated to ProfilePicURL
 	}, nil
+}
+
+// GetPresignedURL is the resolver for the getPresignedUrl field.
+func (r *queryResolver) GetPresignedURL(ctx context.Context, fileName string) (string, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("eu-north-1"))
+	if err != nil {
+		return "", fmt.Errorf("unable to load AWS configuration: %v", err)
+	}
+
+	s3Client := s3.NewFromConfig(cfg)
+	presignClient := s3.NewPresignClient(s3Client)
+
+	req, err := presignClient.PresignPutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket:      aws.String("levanter914-s3-user-profile-pictures"),
+		Key:         aws.String(fileName),
+		ContentType: aws.String("image/jpeg"),
+		//ACL:         types.ObjectCannedACLPublicRead,
+	}, s3.WithPresignExpires(1*time.Hour))
+
+	if err != nil {
+		return "", fmt.Errorf("unable to sign request: %v", err)
+	}
+
+	if req.URL == "" {
+		return "", fmt.Errorf("failed to generate presigned URL")
+	}
+
+	return req.URL, nil
 }
 
 // Mutation returns MutationResolver implementation.

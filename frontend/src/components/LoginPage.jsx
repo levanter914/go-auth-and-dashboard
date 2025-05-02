@@ -1,55 +1,73 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Login({setUser}) {
+export default function Login({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (localStorage.getItem("token")) {
+    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
+    if (storedUser && storedToken) {
       navigate("/");
     }
   }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    const response = await fetch("http://localhost:8080/query", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `
-          mutation Login($email: String!, $password: String!) {
-            login(email: $email, password: $password) {
-              token
-              user {
-                id
-                email
-                firstName
-                lastName
-                phoneNumber
-                country
-                job
+    try {
+      const response = await fetch("http://localhost:8080/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `
+            mutation Login($input: LoginInput!) {
+              login(input: $input) {
+                token
+                user {
+                  id
+                  email
+                  firstName
+                  lastName
+                  phoneNumber
+                  country
+                  job
+                  profilePicURL
+                }
               }
             }
-          }
-        `,
-        variables: { email, password },
-      }),
-    });
+          `,
+          variables: {
+            input: {
+              email,
+              password,
+            },
+          },
+        }),
+      });
 
-    const result = await response.json();
+      const result = await response.json();
 
-    if (result.data?.login?.token) {
-      const { token, user } = result.data.login;
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
-      navigate("/");
-    } else {
-      setError("Invalid credentials, please try again.");
+      if (response.ok && result.data?.login?.token) {
+        const { token, user } = result.data.login;
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        setUser(user);
+        navigate("/");
+      } else {
+        setError("Invalid credentials, please try again.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,14 +96,13 @@ export default function Login({setUser}) {
               className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
           </div>
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
         <div className="text-center text-sm text-gray-600">
