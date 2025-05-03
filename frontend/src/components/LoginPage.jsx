@@ -58,7 +58,7 @@ export default function Login({ setUser }) {
         const { token, user } = result.data.login;
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
-        setUser(user);
+        setUser(user); 
         navigate("/");
       } else {
         setError("Invalid credentials, please try again.");
@@ -72,48 +72,45 @@ export default function Login({ setUser }) {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-gray-50 shadow-xl rounded-2xl p-8 space-y-6">
-        <h2 className="text-3xl font-semibold text-center text-gray-800">Login</h2>
-        <form onSubmit={handleLogin} className="space-y-4">
+    <div className="min-h-screen bg-white flex items-center justify-start px-8">
+      <div className="max-w-md bg-white space-y-8">
+        <h2 className="text-5xl font-bold bg-gradient-to-r from-[#6a11cb] via-[#2575fc] to-[#00b3b3] bg-clip-text text-transparent leading-normal overflow-visible mb-12">
+          Login
+        </h2>
+
+        <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-md font-medium text-gray-500">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full mt-1 px-16 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <label className="block text-md font-medium text-gray-500">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
+
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
+            className="w-full bg-indigo-700 text-white py-3 rounded-full hover:bg-indigo-400 transition duration-400 ease-in-out"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <div className="text-center text-sm text-gray-600">
-          Don't have an account?{" "}
-          <button
-            onClick={() => navigate("/signup")}
-            className="text-indigo-600 hover:underline"
-          >
-            Sign up
-          </button>
-        </div>
       </div>
     </div>
   );

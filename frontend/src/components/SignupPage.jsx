@@ -79,7 +79,7 @@ export default function Signup() {
       if (profilePic) {
         const fileName = `${formData.email}-${Date.now()}.jpg`;
   
-        // Get presigned URL from backend
+       
         const presignRes = await fetch("http://localhost:8080/query", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -100,7 +100,6 @@ export default function Signup() {
           throw new Error("Failed to get upload URL from server");
         }
   
-        // Upload to S3 using presigned URL
         const uploadRes = await fetch(uploadUrl, {
           method: "PUT",
           headers: {
@@ -116,13 +115,13 @@ export default function Signup() {
           throw new Error("Failed to upload image to S3");
         }
   
-        // Construct public image URL
+
         const bucketName = "levanter914-s3-user-profile-pictures";
         imageUrl = `https://${bucketName}.s3.amazonaws.com/${fileName}`;
         console.log("Profile URL:", imageUrl);
       }
   
-      // GraphQL Signup Mutation
+
       const query = `
         mutation Signup($input: SignupInput!) {
           signup(input: $input) {
@@ -179,133 +178,138 @@ export default function Signup() {
   
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4">
-      <div className="bg-gray-50 p-8 rounded-2xl shadow-xl w-full max-w-md space-y-6">
-        <h2 className="text-2xl font-bold text-center text-gray-800">Sign Up</h2>
-
-        <div className="space-y-4">
+    <div className="min-h-screen bg-white flex items-center justify-start px-8">
+      <div className="max-w-md bg-white space-y-10">
+        <h2 className="text-5xl font-bold bg-gradient-to-r from-[#6a11cb] via-[#2575fc] to-[#00b3b3] bg-clip-text text-transparent leading-normal overflow-visible">
+          Sign Up
+        </h2>
+  
+        <form className="space-y-6">
           {step === 1 && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <label className="block text-md font-medium text-gray-500">Email</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <label className="block text-md font-medium text-gray-500">Password</label>
                 <input
                   type="password"
                   value={formData.password}
                   onChange={(e) => handleChange("password", e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <label className="block text-md font-medium text-gray-500">Confirm Password</label>
                 <input
                   type="password"
                   value={formData.confirmPassword}
                   onChange={(e) => handleChange("confirmPassword", e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
             </>
           )}
-
+  
           {step === 2 && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
+                <label className="block text-md font-medium text-gray-500">Profile Picture</label>
+                <div className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-4xl shadow-sm bg-white text-gray-500 text-sm flex items-center justify-between cursor-pointer hover:border-indigo-400 transition">
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => setProfilePic(e.target.files[0])}
+                  className="w-full mt-1"
                   required
                 />
+                </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">First Name</label>
+                <label className="block text-md font-medium text-gray-500">First Name</label>
                 <input
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => handleChange("firstName", e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                <label className="block text-md font-medium text-gray-500">Last Name</label>
                 <input
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => handleChange("lastName", e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
             </>
           )}
-
+  
           {step === 3 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+              <label className="block text-md font-medium text-gray-500">Phone Number</label>
               <input
                 type="text"
                 value={formData.phoneNumber}
                 onChange={(e) => handleChange("phoneNumber", e.target.value)}
-                className="w-full mt-1 px-3 py-2 border rounded-md"
+                className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           )}
-
+  
           {step === 4 && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Country</label>
+                <label className="block text-md font-medium text-gray-500">Country</label>
                 <input
                   type="text"
                   value={formData.country}
                   onChange={(e) => handleChange("country", e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Job</label>
+                <label className="block text-md font-medium text-gray-500">Job</label>
                 <input
                   type="text"
                   value={formData.job}
                   onChange={(e) => handleChange("job", e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </>
           )}
-
+  
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-          <div className="flex justify-between mt-4">
+  
+          <div className="flex justify-between pt-4">
             {step > 1 && (
               <button
                 type="button"
                 onClick={prevStep}
-                className="text-sm text-gray-600 hover:underline"
+                className="text-sm text-gray-500 hover:underline"
               >
                 Back
               </button>
             )}
-
+  
             {step < 4 ? (
               <button
                 type="button"
                 onClick={nextStep}
-                className="ml-auto bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+                className="ml-auto bg-indigo-600 text-white px-6 py-2 rounded-full hover:bg-indigo-500 transition"
               >
                 Next
               </button>
@@ -313,15 +317,15 @@ export default function Signup() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="ml-auto bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                className="ml-auto bg-indigo-700 text-white px-6 py-2 rounded-full  hover:bg-indigo-400 transition duration-400 ease-in-out"
                 disabled={loading}
               >
                 {loading ? "Signing Up..." : "Submit"}
               </button>
             )}
           </div>
-        </div>
+        </form>
       </div>
     </div>
-  );
+  );  
 }
