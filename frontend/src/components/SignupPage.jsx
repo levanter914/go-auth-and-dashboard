@@ -203,7 +203,7 @@ export default function Signup() {
                   type="password"
                   value={formData.password}
                   onChange={(e) => handleChange("password", e.target.value)}
-                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
@@ -213,7 +213,7 @@ export default function Signup() {
                   type="password"
                   value={formData.confirmPassword}
                   onChange={(e) => handleChange("confirmPassword", e.target.value)}
-                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
@@ -224,7 +224,7 @@ export default function Signup() {
             <>
               <div>
                 <label className="block text-md font-medium text-gray-500">Profile Picture</label>
-                <div className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-4xl shadow-sm bg-white text-gray-500 text-sm flex items-center justify-between cursor-pointer hover:border-indigo-400 transition">
+                <div className="w-full px-22 py-3 border border-dashed border-gray-300 rounded-4xl shadow-sm bg-white text-gray-500 text-sm flex items-center justify-between cursor-pointer hover:border-indigo-400 transition">
                 <input
                   type="file"
                   accept="image/*"
@@ -240,7 +240,7 @@ export default function Signup() {
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => handleChange("firstName", e.target.value)}
-                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
@@ -250,7 +250,7 @@ export default function Signup() {
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => handleChange("lastName", e.target.value)}
-                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
@@ -264,7 +264,7 @@ export default function Signup() {
                 type="text"
                 value={formData.phoneNumber}
                 onChange={(e) => handleChange("phoneNumber", e.target.value)}
-                className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           )}
@@ -277,7 +277,7 @@ export default function Signup() {
                   type="text"
                   value={formData.country}
                   onChange={(e) => handleChange("country", e.target.value)}
-                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               <div>
@@ -286,7 +286,7 @@ export default function Signup() {
                   type="text"
                   value={formData.job}
                   onChange={(e) => handleChange("job", e.target.value)}
-                  className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </>

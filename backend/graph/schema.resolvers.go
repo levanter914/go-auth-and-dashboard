@@ -21,7 +21,6 @@ import (
 )
 
 // Signup is the resolver for the signup field.
-// Signup is the resolver for the signup field.
 func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) (*model.AuthPayload, error) {
 	if len(input.Password) < 6 {
 		return nil, errors.New("password must be at least 6 characters")
@@ -43,7 +42,6 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) 
 		return nil, err
 	}
 
-	// Insert into auth and return id
 	var userID int64
 	err = DB.QueryRow(
 		"INSERT INTO auth (email, password) VALUES ($1, $2) RETURNING id",
@@ -53,7 +51,6 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) 
 		return nil, err
 	}
 
-	// Insert into profile
 	_, err = DB.Exec(`
 		INSERT INTO user_profile (id, first_name, last_name, phone_number, country, job, profilepicurl)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -62,7 +59,6 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) 
 		return nil, err
 	}
 
-	// Generate JWT
 	token, err := utils.GenerateJWT(fmt.Sprintf("%d", userID))
 	if err != nil {
 		return nil, err
@@ -102,19 +98,16 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 		return nil, errors.New("invalid credentials")
 	}
 
-	// Compare the provided password with the hashed password
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(input.Password))
 	if err != nil {
 		return nil, errors.New("invalid password")
 	}
 
-	// Generate a JWT token
 	token, err := utils.GenerateJWT(fmt.Sprintf("%d", id))
 	if err != nil {
 		return nil, err
 	}
 
-	// Return the AuthPayload with the token and user information
 	return &model.AuthPayload{
 		Token: token,
 		User: &model.User{

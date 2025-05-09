@@ -34,18 +34,17 @@ export default function Dashboard({ user, setUser }) {
         <h1 className="text-2xl font-bold text-indigo-600">Dashboard</h1>
         
         <div className="flex items-center space-x-4">
-          {/* Notification Bell */}
+
           <button className="p-2 rounded-full hover:bg-gray-100 relative">
             <Bell size={20} className="text-gray-600" />
             <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
           
-          {/* Settings */}
+
           <button className="p-2 rounded-full hover:bg-gray-100">
             <Settings size={20} className="text-gray-600" />
           </button>
-          
-          {/* User Profile Dropdown */}
+
           <div className="relative">
             <button 
               onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -83,8 +82,7 @@ export default function Dashboard({ user, setUser }) {
           </div>
         </div>
       </nav>
-      
-      {/* Main Content */}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* User Profile Card */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden md:col-span-1">
@@ -153,10 +151,8 @@ export default function Dashboard({ user, setUser }) {
             </div>
           </div>
         </div>
-        
-        {/* Additional Content Areas */}
+
         <div className="md:col-span-2 space-y-6">
-          {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-white p-6 rounded-xl shadow-md">
               <h3 className="text-lg font-semibold text-gray-700 mb-3">Tasks</h3>
