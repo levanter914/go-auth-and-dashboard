@@ -6,8 +6,7 @@ input SignupInput {
   firstName: String!
   lastName: String!
   phoneNumber: String
-  country: String
-  job: String
+  company: String
   profilePicURL: String 
 }
 
@@ -17,8 +16,7 @@ type User {
   firstName: String
   lastName: String
   phoneNumber: String
-  country: String
-  job: String
+  company: String
   profilePicURL: String
 }
 
@@ -30,6 +28,20 @@ type AuthPayload {
 type Query {
   me: User!
   getPresignedURL(fileName: String!): String!
+  getBillPDF(billID: Int!, type: String!): String! 
+  getBills(page: Int!, size: Int!): BillPaginationResult!
+}
+
+type BillPaginationResult {
+    totalCount: Int!
+    bills: [Bill!]
+}
+
+type Bill {
+    billID: Int!
+    company: String!
+    createdAt: String!
+    totalAmount: Float!
 }
 
 input LoginInput {

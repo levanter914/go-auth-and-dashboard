@@ -36,8 +36,7 @@ export default function Login({ setUser }) {
                   firstName
                   lastName
                   phoneNumber
-                  country
-                  job
+                  company                  
                   profilePicURL
                 }
               }

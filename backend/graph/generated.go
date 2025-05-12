@@ -52,22 +52,35 @@ type ComplexityRoot struct {
 		User  func(childComplexity int) int
 	}
 
+	Bill struct {
+		BillID      func(childComplexity int) int
+		Company     func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		TotalAmount func(childComplexity int) int
+	}
+
+	BillPaginationResult struct {
+		Bills      func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
 	Mutation struct {
 		Login  func(childComplexity int, input model.LoginInput) int
 		Signup func(childComplexity int, input model.SignupInput) int
 	}
 
 	Query struct {
+		GetBillPDF      func(childComplexity int, billID int32, typeArg string) int
+		GetBills        func(childComplexity int, page int32, size int32) int
 		GetPresignedURL func(childComplexity int, fileName string) int
 		Me              func(childComplexity int) int
 	}
 
 	User struct {
-		Country       func(childComplexity int) int
+		Company       func(childComplexity int) int
 		Email         func(childComplexity int) int
 		FirstName     func(childComplexity int) int
 		ID            func(childComplexity int) int
-		Job           func(childComplexity int) int
 		LastName      func(childComplexity int) int
 		PhoneNumber   func(childComplexity int) int
 		ProfilePicURL func(childComplexity int) int
@@ -81,6 +94,8 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Me(ctx context.Context) (*model.User, error)
 	GetPresignedURL(ctx context.Context, fileName string) (string, error)
+	GetBillPDF(ctx context.Context, billID int32, typeArg string) (string, error)
+	GetBills(ctx context.Context, page int32, size int32) (*model.BillPaginationResult, error)
 }
 
 type executableSchema struct {
@@ -116,6 +131,48 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.AuthPayload.User(childComplexity), true
 
+	case "Bill.billID":
+		if e.complexity.Bill.BillID == nil {
+			break
+		}
+
+		return e.complexity.Bill.BillID(childComplexity), true
+
+	case "Bill.company":
+		if e.complexity.Bill.Company == nil {
+			break
+		}
+
+		return e.complexity.Bill.Company(childComplexity), true
+
+	case "Bill.createdAt":
+		if e.complexity.Bill.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Bill.CreatedAt(childComplexity), true
+
+	case "Bill.totalAmount":
+		if e.complexity.Bill.TotalAmount == nil {
+			break
+		}
+
+		return e.complexity.Bill.TotalAmount(childComplexity), true
+
+	case "BillPaginationResult.bills":
+		if e.complexity.BillPaginationResult.Bills == nil {
+			break
+		}
+
+		return e.complexity.BillPaginationResult.Bills(childComplexity), true
+
+	case "BillPaginationResult.totalCount":
+		if e.complexity.BillPaginationResult.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.BillPaginationResult.TotalCount(childComplexity), true
+
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
 			break
@@ -140,6 +197,30 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Mutation.Signup(childComplexity, args["input"].(model.SignupInput)), true
 
+	case "Query.getBillPDF":
+		if e.complexity.Query.GetBillPDF == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getBillPDF_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetBillPDF(childComplexity, args["billID"].(int32), args["type"].(string)), true
+
+	case "Query.getBills":
+		if e.complexity.Query.GetBills == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getBills_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetBills(childComplexity, args["page"].(int32), args["size"].(int32)), true
+
 	case "Query.getPresignedURL":
 		if e.complexity.Query.GetPresignedURL == nil {
 			break
@@ -159,12 +240,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Query.Me(childComplexity), true
 
-	case "User.country":
-		if e.complexity.User.Country == nil {
+	case "User.company":
+		if e.complexity.User.Company == nil {
 			break
 		}
 
-		return e.complexity.User.Country(childComplexity), true
+		return e.complexity.User.Company(childComplexity), true
 
 	case "User.email":
 		if e.complexity.User.Email == nil {
@@ -186,13 +267,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.User.ID(childComplexity), true
-
-	case "User.job":
-		if e.complexity.User.Job == nil {
-			break
-		}
-
-		return e.complexity.User.Job(childComplexity), true
 
 	case "User.lastName":
 		if e.complexity.User.LastName == nil {
@@ -407,6 +481,88 @@ func (ec *executionContext) field_Query___type_argsName(
 	}
 
 	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getBillPDF_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_getBillPDF_argsBillID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["billID"] = arg0
+	arg1, err := ec.field_Query_getBillPDF_argsType(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["type"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Query_getBillPDF_argsBillID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (int32, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("billID"))
+	if tmp, ok := rawArgs["billID"]; ok {
+		return ec.unmarshalNInt2int32(ctx, tmp)
+	}
+
+	var zeroVal int32
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getBillPDF_argsType(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+	if tmp, ok := rawArgs["type"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getBills_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_getBills_argsPage(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["page"] = arg0
+	arg1, err := ec.field_Query_getBills_argsSize(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["size"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Query_getBills_argsPage(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (int32, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+	if tmp, ok := rawArgs["page"]; ok {
+		return ec.unmarshalNInt2int32(ctx, tmp)
+	}
+
+	var zeroVal int32
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getBills_argsSize(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (int32, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("size"))
+	if tmp, ok := rawArgs["size"]; ok {
+		return ec.unmarshalNInt2int32(ctx, tmp)
+	}
+
+	var zeroVal int32
 	return zeroVal, nil
 }
 
@@ -626,14 +782,283 @@ func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, fie
 				return ec.fieldContext_User_lastName(ctx, field)
 			case "phoneNumber":
 				return ec.fieldContext_User_phoneNumber(ctx, field)
-			case "country":
-				return ec.fieldContext_User_country(ctx, field)
-			case "job":
-				return ec.fieldContext_User_job(ctx, field)
+			case "company":
+				return ec.fieldContext_User_company(ctx, field)
 			case "profilePicURL":
 				return ec.fieldContext_User_profilePicURL(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Bill_billID(ctx context.Context, field graphql.CollectedField, obj *model.Bill) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Bill_billID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BillID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int32)
+	fc.Result = res
+	return ec.marshalNInt2int32(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Bill_billID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Bill",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Bill_company(ctx context.Context, field graphql.CollectedField, obj *model.Bill) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Bill_company(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Company, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Bill_company(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Bill",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Bill_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Bill) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Bill_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Bill_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Bill",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Bill_totalAmount(ctx context.Context, field graphql.CollectedField, obj *model.Bill) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Bill_totalAmount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalAmount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Bill_totalAmount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Bill",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BillPaginationResult_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.BillPaginationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillPaginationResult_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int32)
+	fc.Result = res
+	return ec.marshalNInt2int32(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillPaginationResult_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillPaginationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BillPaginationResult_bills(ctx context.Context, field graphql.CollectedField, obj *model.BillPaginationResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillPaginationResult_bills(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Bills, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Bill)
+	fc.Result = res
+	return ec.marshalOBill2ᚕᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋbackendᚋgraphᚋmodelᚐBillᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillPaginationResult_bills(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillPaginationResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "billID":
+				return ec.fieldContext_Bill_billID(ctx, field)
+			case "company":
+				return ec.fieldContext_Bill_company(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Bill_createdAt(ctx, field)
+			case "totalAmount":
+				return ec.fieldContext_Bill_totalAmount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Bill", field.Name)
 		},
 	}
 	return fc, nil
@@ -810,10 +1235,8 @@ func (ec *executionContext) fieldContext_Query_me(_ context.Context, field graph
 				return ec.fieldContext_User_lastName(ctx, field)
 			case "phoneNumber":
 				return ec.fieldContext_User_phoneNumber(ctx, field)
-			case "country":
-				return ec.fieldContext_User_country(ctx, field)
-			case "job":
-				return ec.fieldContext_User_job(ctx, field)
+			case "company":
+				return ec.fieldContext_User_company(ctx, field)
 			case "profilePicURL":
 				return ec.fieldContext_User_profilePicURL(ctx, field)
 			}
@@ -872,6 +1295,122 @@ func (ec *executionContext) fieldContext_Query_getPresignedURL(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getPresignedURL_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getBillPDF(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getBillPDF(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetBillPDF(rctx, fc.Args["billID"].(int32), fc.Args["type"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getBillPDF(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getBillPDF_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getBills(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getBills(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetBills(rctx, fc.Args["page"].(int32), fc.Args["size"].(int32))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.BillPaginationResult)
+	fc.Result = res
+	return ec.marshalNBillPaginationResult2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋbackendᚋgraphᚋmodelᚐBillPaginationResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getBills(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "totalCount":
+				return ec.fieldContext_BillPaginationResult_totalCount(ctx, field)
+			case "bills":
+				return ec.fieldContext_BillPaginationResult_bills(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BillPaginationResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getBills_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -1220,8 +1759,8 @@ func (ec *executionContext) fieldContext_User_phoneNumber(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _User_country(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_country(ctx, field)
+func (ec *executionContext) _User_company(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_company(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1234,7 +1773,7 @@ func (ec *executionContext) _User_country(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Country, nil
+		return obj.Company, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1248,48 +1787,7 @@ func (ec *executionContext) _User_country(ctx context.Context, field graphql.Col
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_User_country(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_job(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_job(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Job, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_job(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_company(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "User",
 		Field:      field,
@@ -3335,7 +3833,7 @@ func (ec *executionContext) unmarshalInputSignupInput(ctx context.Context, obj a
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"email", "password", "firstName", "lastName", "phoneNumber", "country", "job", "profilePicURL"}
+	fieldsInOrder := [...]string{"email", "password", "firstName", "lastName", "phoneNumber", "company", "profilePicURL"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3377,20 +3875,13 @@ func (ec *executionContext) unmarshalInputSignupInput(ctx context.Context, obj a
 				return it, err
 			}
 			it.PhoneNumber = data
-		case "country":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("country"))
+		case "company":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("company"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Country = data
-		case "job":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("job"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Job = data
+			it.Company = data
 		case "profilePicURL":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profilePicURL"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -3433,6 +3924,101 @@ func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var billImplementors = []string{"Bill"}
+
+func (ec *executionContext) _Bill(ctx context.Context, sel ast.SelectionSet, obj *model.Bill) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, billImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Bill")
+		case "billID":
+			out.Values[i] = ec._Bill_billID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "company":
+			out.Values[i] = ec._Bill_company(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._Bill_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalAmount":
+			out.Values[i] = ec._Bill_totalAmount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var billPaginationResultImplementors = []string{"BillPaginationResult"}
+
+func (ec *executionContext) _BillPaginationResult(ctx context.Context, sel ast.SelectionSet, obj *model.BillPaginationResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, billPaginationResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BillPaginationResult")
+		case "totalCount":
+			out.Values[i] = ec._BillPaginationResult_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bills":
+			out.Values[i] = ec._BillPaginationResult_bills(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3575,6 +4161,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getBillPDF":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getBillPDF(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getBills":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getBills(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -3633,10 +4263,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_lastName(ctx, field, obj)
 		case "phoneNumber":
 			out.Values[i] = ec._User_phoneNumber(ctx, field, obj)
-		case "country":
-			out.Values[i] = ec._User_country(ctx, field, obj)
-		case "job":
-			out.Values[i] = ec._User_job(ctx, field, obj)
+		case "company":
+			out.Values[i] = ec._User_company(ctx, field, obj)
 		case "profilePicURL":
 			out.Values[i] = ec._User_profilePicURL(ctx, field, obj)
 		default:
@@ -4011,6 +4639,30 @@ func (ec *executionContext) marshalNAuthPayload2ᚖgithubᚗcomᚋlevanter914ᚋ
 	return ec._AuthPayload(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNBill2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋbackendᚋgraphᚋmodelᚐBill(ctx context.Context, sel ast.SelectionSet, v *model.Bill) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Bill(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNBillPaginationResult2githubᚗcomᚋlevanter914ᚋloginᚑpageᚋbackendᚋgraphᚋmodelᚐBillPaginationResult(ctx context.Context, sel ast.SelectionSet, v model.BillPaginationResult) graphql.Marshaler {
+	return ec._BillPaginationResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBillPaginationResult2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋbackendᚋgraphᚋmodelᚐBillPaginationResult(ctx context.Context, sel ast.SelectionSet, v *model.BillPaginationResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BillPaginationResult(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4026,6 +4678,21 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v any) (float64, error) {
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloatContext(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4033,6 +4700,21 @@ func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (str
 
 func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int32(ctx context.Context, v any) (int32, error) {
+	res, err := graphql.UnmarshalInt32(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int32(ctx context.Context, sel ast.SelectionSet, v int32) graphql.Marshaler {
+	res := graphql.MarshalInt32(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4329,6 +5011,53 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOBill2ᚕᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋbackendᚋgraphᚋmodelᚐBillᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Bill) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNBill2ᚖgithubᚗcomᚋlevanter914ᚋloginᚑpageᚋbackendᚋgraphᚋmodelᚐBill(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {

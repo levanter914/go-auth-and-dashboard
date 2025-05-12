@@ -12,8 +12,7 @@ export default function Signup() {
     firstName: "",
     lastName: "",
     phoneNumber: "",
-    country: "",
-    job: "",
+    company: "",
   });
   const [profilePic, setProfilePic] = useState(null);
   const [error, setError] = useState("");
@@ -58,8 +57,8 @@ export default function Signup() {
     }
 
     if (step === 4) {
-      if (!formData.country.trim() || !formData.job.trim()) {
-        setError("Country and job fields cannot be empty.");
+      if (!formData.company.trim() || !formData.job.trim()) {
+        setError("Company Name field cannot be empty.");
         return;
       }
     }
@@ -132,8 +131,7 @@ export default function Signup() {
               firstName
               lastName
               phoneNumber
-              country
-              job
+              company
               profilePicURL
             }
           }
@@ -147,8 +145,7 @@ export default function Signup() {
           email: formData.email,
           password: formData.password,
           phoneNumber: formData.phoneNumber,
-          country: formData.country,
-          job: formData.job,
+          company: formData.company,
           profilePicURL: imageUrl,
         },
       };
@@ -272,20 +269,11 @@ export default function Signup() {
           {step === 4 && (
             <>
               <div>
-                <label className="block text-md font-medium text-gray-500">Country</label>
+                <label className="block text-md font-medium text-gray-500">Company Name</label>
                 <input
                   type="text"
-                  value={formData.country}
-                  onChange={(e) => handleChange("country", e.target.value)}
-                  className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-md font-medium text-gray-500">Job</label>
-                <input
-                  type="text"
-                  value={formData.job}
-                  onChange={(e) => handleChange("job", e.target.value)}
+                  value={formData.company}
+                  onChange={(e) => handleChange("company", e.target.value)}
                   className="w-full mt-1 px-22 py-3 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
