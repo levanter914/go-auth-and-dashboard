@@ -28,7 +28,6 @@ type AuthPayload {
 type Query {
   me: User!
   getPresignedURL(fileName: String!): String!
-  getBillPDF(billID: Int!, type: String!): String! 
   getBills(page: Int!, size: Int!): BillPaginationResult!
 }
 
@@ -52,5 +51,6 @@ input LoginInput {
 type Mutation {
   signup(input: SignupInput!): AuthPayload!
   login(input: LoginInput!): AuthPayload!
+  getBillPDF(billID: Int!): String! 
 }
 

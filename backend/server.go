@@ -32,13 +32,13 @@ func main() {
 		port = defaultPort
 	}
 
-	// GraphQL handler
+	// Create the GraphQL server
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
 	srv.AddTransport(transport.POST{})
 	srv.Use(extension.Introspection{})
-	srv.Use(extension.AutomaticPersistedQuery{Cache: lru.New[string](100) })
+	srv.Use(extension.AutomaticPersistedQuery{Cache: lru.New[string](100)})
 
 	// Define the /login handler
 	loginHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -62,18 +62,27 @@ func main() {
 		}
 	})
 
-	// CORS middleware
+	// Set up CORS middleware
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{"http://localhost:5173"}, // Allowed frontend URL
 		AllowCredentials: true,
 		AllowedMethods:   []string{"POST", "GET", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 	}).Handler
 
+	// Serve static files with CORS headers
+	http.Handle("/static/", http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set the CORS header
+		w.Header().Set("Access-Control-Allow-Origin", "*") // Allow all origins
+
+		// Serve the static file
+		http.ServeFile(w, r, "./static"+r.URL.Path)
+	})))
+
 	// Apply handlers
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", corsMiddleware(graph.Middleware(srv)))
-	http.Handle("/login", corsMiddleware(loginHandler)) // ✅ THIS IS CRUCIAL
+	http.Handle("/query", corsMiddleware(srv))          // Apply CORS middleware to GraphQL endpoint
+	http.Handle("/login", corsMiddleware(loginHandler)) // Apply CORS middleware to /login endpoint
 
 	log.Printf("Server started on http://localhost:%s/", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
