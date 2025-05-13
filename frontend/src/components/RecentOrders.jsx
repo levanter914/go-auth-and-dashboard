@@ -8,8 +8,7 @@ export default function RecentOrders() {
     const limit = 2; // Limit of bills per page
 
     useEffect(() => {
-        // Reset error and fetch new data
-        setError("");
+        setError(""); // Reset error before fetching
 
         fetch("http://localhost:8080/query", {
             method: "POST",
@@ -19,7 +18,7 @@ export default function RecentOrders() {
             },
             body: JSON.stringify({
                 query: `
-                    query GetRecentBills($page: Int!, $size: Int!) {
+                    query GetBills($page: Int!, $size: Int!) {
                         getBills(page: $page, size: $size) {
                             bills {
                                 billID
@@ -45,8 +44,19 @@ export default function RecentOrders() {
                 const fetchedBills = res?.data?.getBills?.bills;
 
                 if (Array.isArray(fetchedBills)) {
-                    setBills(fetchedBills);
-                    setHasMore(fetchedBills.length === limit); // If fewer than limit, no more pages
+                    // Filter out duplicates by billID
+                    const uniqueBills = [];
+                    const seen = new Set();
+
+                    for (const bill of fetchedBills) {
+                        if (!seen.has(bill.billID)) {
+                            seen.add(bill.billID);
+                            uniqueBills.push(bill);
+                        }
+                    }
+
+                    setBills(uniqueBills);
+                    setHasMore(uniqueBills.length === limit); // Only allow next if we have full page
                 } else {
                     setBills([]);
                     setHasMore(false);
@@ -72,7 +82,7 @@ export default function RecentOrders() {
                 {bills.length > 0 ? (
                     bills.map((bill, idx) =>
                         bill && bill.billID ? (
-                            <div key={bill.billID} className="flex items-center border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                            <div key={`${bill.billID}-${idx}`} className="flex items-center border-b border-gray-100 pb-3 last:border-0 last:pb-0">
                                 <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
                                     <span className="text-indigo-600 font-medium">#{bill.billID}</span>
                                 </div>
@@ -84,7 +94,7 @@ export default function RecentOrders() {
                                 </div>
                             </div>
                         ) : (
-                            <div key={idx} className="text-red-400 text-sm">Invalid bill data</div>
+                            <div key={`invalid-${idx}`} className="text-red-400 text-sm">Invalid bill data</div>
                         )
                     )
                 ) : (
@@ -93,7 +103,6 @@ export default function RecentOrders() {
             </div>
 
             <div className="mt-4 flex justify-between">
-                {/* Previous button */}
                 <button
                     onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
                     disabled={page === 1}
@@ -102,7 +111,6 @@ export default function RecentOrders() {
                     ← Previous
                 </button>
 
-                {/* Next button */}
                 <button
                     onClick={() => setPage((prev) => prev + 1)}
                     disabled={!hasMore}
