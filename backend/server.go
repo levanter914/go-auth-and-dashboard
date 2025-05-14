@@ -13,27 +13,41 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/joho/godotenv"
 	"github.com/levanter914/login-page/backend/graph"
+	"github.com/levanter914/login-page/backend/graph/repo"
 	"github.com/rs/cors"
 )
 
 const defaultPort = "8080"
 
 func init() {
+	// Load .env.local file
 	err := godotenv.Load(".env.local")
 	if err != nil {
 		log.Println("No .env.local file found or failed to load")
 	}
+
+	// Initialize the database
 	graph.InitDB()
 }
 
 func main() {
+	// Get port from environment variables or use default
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
 
-	// Create the GraphQL server
-	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	// Initialize GraphQL Resolver with BillRepo
+	resolver := &graph.Resolver{
+		BillRepo:    &repo.BillRepo{DB: graph.DB},
+		UserRepo:    &repo.UserRepo{DB: graph.DB},
+		BillItem:    &repo.BillItem{DB: graph.DB},
+		PaymentRepo: &repo.PaymentRepo{DB: graph.DB},
+		
+	}
+
+	// Create the GraphQL server with the resolver
+	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
 	srv.AddTransport(transport.POST{})
@@ -71,13 +85,8 @@ func main() {
 	}).Handler
 
 	// Serve static files with CORS headers
-	http.Handle("/static/", http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Set the CORS header
-		w.Header().Set("Access-Control-Allow-Origin", "*") // Allow all origins
-
-		// Serve the static file
-		http.ServeFile(w, r, "./static"+r.URL.Path)
-	})))
+	pdfHandler := http.StripPrefix("/pdf/", http.FileServer(http.Dir("./static/pdfs")))
+	http.Handle("/pdf/", corsMiddleware(pdfHandler))
 
 	// Apply handlers
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))

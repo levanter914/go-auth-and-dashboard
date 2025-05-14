@@ -12,7 +12,7 @@ type BillRepo struct {
 }
 
 // Fetch bill data (excluding items/payment)
-func (r *BillRepo) GetByID(ctx context.Context, billID int) (*model.BillDetails, error) {
+func (r *BillRepo) GetBillDetailsByID(ctx context.Context, billID int) (*model.BillDetails, error) {
 	query := `
 		SELECT 
 			b.id, b.created_at, b.bill_type, b.notes, 
@@ -40,3 +40,4 @@ func (r *BillRepo) GetByID(ctx context.Context, billID int) (*model.BillDetails,
 	bill.User = &user
 	return &bill, nil
 }
+

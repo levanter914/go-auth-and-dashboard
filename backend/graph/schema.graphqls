@@ -86,6 +86,7 @@ type BillDetails {
   user: UserProfile!
   items: [BillItem!]!
   payment: Payment
+  company: String  
 }
 
 extend type Query {

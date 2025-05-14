@@ -26,6 +26,7 @@ type BillDetails struct {
 	User      *UserProfile `json:"user"`
 	Items     []*BillItem  `json:"items"`
 	Payment   *Payment     `json:"payment,omitempty"`
+	Company   *string      `json:"company,omitempty"`
 }
 
 type BillItem struct {

@@ -123,50 +123,113 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 
 // GetBillPDF is the resolver for the getBillPDF field.
 func (r *mutationResolver) GetBillPDF(ctx context.Context, billID int32) (string, error) {
-	// Step 1: Fetch the bill data from the database
-	var company string
-	var total float64
-	var createdAt time.Time
-
-	err := DB.QueryRow(`
-        SELECT company, total, created_at
-        FROM bill_summary_view
-        WHERE bill_id = $1
-    `, billID).Scan(&company, &total, &createdAt)
-
+	// Step 1: Fetch the bill
+	bill, err := r.Resolver.Query().GetBillDetails(ctx, billID)
 	if err != nil {
-		return "", fmt.Errorf("bill not found: %v", err)
+		return "", fmt.Errorf("failed to fetch bill details: %v", err)
 	}
 
-	// Step 2: Generate the PDF with gofpdf
-	pdf := gofpdf.New("P", "mm", "A4", "")
+	// Step 2: Setup 80mm receipt-style PDF
+	// Step 2: Setup 80mm receipt-style PDF using NewCustom
+	pdf := gofpdf.NewCustom(&gofpdf.InitType{
+		UnitStr: "mm",
+		Size: gofpdf.SizeType{
+			Wd: 100.0,
+			Ht: 300.0, // Use a tall height to accommodate receipts of any length
+		},
+		OrientationStr: "P",
+	})
+	pdf.SetMargins(4, 4, 4)
 	pdf.AddPage()
 
-	// Set the title of the PDF (Bold, size 16)
-	pdf.SetFont("Arial", "B", 16)
-	pdf.Cell(40, 10, fmt.Sprintf("Bill #%d", billID))
-	pdf.Ln(12)
+	// Fonts
+	pdf.SetFont("Courier", "B", 12)
+	pdf.CellFormat(92, 6, "RECEIPT", "", 1, "C", false, 0, "")
+	pdf.Ln(2)
 
-	// Set the content of the PDF (Regular, size 12)
-	pdf.SetFont("Arial", "", 12)
-	pdf.Cell(40, 10, fmt.Sprintf("Company: %s", company))
-	pdf.Ln(8)
-	pdf.Cell(40, 10, fmt.Sprintf("Total: ₹%.2f", total))
-	pdf.Ln(8)
-	pdf.Cell(40, 10, fmt.Sprintf("Date: %s", createdAt.Format("2006-01-02 15:04")))
+	// Company Name
+	if bill.User != nil && bill.User.Company != nil {
+		pdf.SetFont("Courier", "B", 10)
+		pdf.MultiCell(92, 5, *bill.User.Company, "", "C", false)
+		pdf.Ln(1)
+	}
 
-	// Step 3: Save the PDF to the file system
+	pdf.SetFont("Courier", "", 9)
+
+	// Bill ID and Date
+	pdf.CellFormat(72, 4, fmt.Sprintf("Bill ID: %d", bill.BillID), "", 1, "L", false, 0, "")
+	pdf.CellFormat(72, 4, fmt.Sprintf("Date: %s", bill.CreatedAt), "", 1, "L", false, 0, "")
+	pdf.Ln(1)
+
+	// Header
+	pdf.SetFont("Courier", "B", 9)
+	pdf.CellFormat(35, 5, "Item", "", 0, "L", false, 0, "")
+	pdf.CellFormat(10, 5, "Qty", "", 0, "C", false, 0, "")
+	pdf.CellFormat(15, 5, "Rate", "", 0, "C", false, 0, "")
+	pdf.CellFormat(0, 5, "Amt", "", 1, "R", false, 0, "")
+
+	pdf.SetFont("Courier", "", 9)
+
+	// Items
+	for _, item := range bill.Items {
+		pdf.CellFormat(35, 5, item.Description, "", 0, "L", false, 0, "")
+		pdf.CellFormat(10, 5, fmt.Sprintf("%d", item.Quantity), "", 0, "C", false, 0, "")
+		pdf.CellFormat(15, 5, fmt.Sprintf("%.2f", item.UnitPrice), "", 0, "C", false, 0, "")
+		pdf.CellFormat(0, 5, fmt.Sprintf("%.2f", item.TotalPrice), "", 1, "R", false, 0, "")
+	}
+
+	// Separator
+	pdf.Ln(1)
+	pdf.Line(4, pdf.GetY(), 96, pdf.GetY())
+	pdf.Ln(1)
+
+	// Totals
+	if bill.Subtotal != nil {
+		pdf.CellFormat(74, 5, "Subtotal", "", 0, "R", false, 0, "")
+		pdf.CellFormat(0, 5, fmt.Sprintf(" %.2f", *bill.Subtotal), "", 1, "R", false, 0, "")
+	}
+	if bill.Tax != nil {
+		pdf.CellFormat(74, 5, "Tax", "", 0, "R", false, 0, "")
+		pdf.CellFormat(0, 5, fmt.Sprintf(" %.2f", *bill.Tax), "", 1, "R", false, 0, "")
+	}
+	if bill.Discount != nil {
+		pdf.CellFormat(74, 5, "Discount", "", 0, "R", false, 0, "")
+		pdf.CellFormat(0, 5, fmt.Sprintf("- %.2f", *bill.Discount), "", 1, "R", false, 0, "")
+	}
+
+	pdf.SetFont("Courier", "B", 10)
+	pdf.CellFormat(74, 6, "TOTAL", "", 0, "R", false, 0, "")
+	pdf.CellFormat(0, 6, fmt.Sprintf(" %.2f", bill.Total), "", 1, "R", false, 0, "")
+	pdf.Ln(1)
+
+	// Payment info
+	pdf.SetFont("Courier", "", 9)
+	if bill.Payment != nil {
+		pdf.CellFormat(92, 5, fmt.Sprintf("Paid via: %s", bill.Payment.Method), "", 1, "L", false, 0, "")
+	}
+
+	// Notes
+	if bill.Notes != nil && *bill.Notes != "" {
+		pdf.Ln(2)
+		pdf.MultiCell(92, 4, fmt.Sprintf("Notes: %s", *bill.Notes), "", "L", false)
+	}
+
+	// Footer
+	pdf.Ln(4)
+	pdf.SetFont("Courier", "I", 8)
+	pdf.CellFormat(92, 4, "Thank you for your business!", "", 1, "C", false, 0, "")
+
+	// Step 3: Save the PDF
 	fileName := fmt.Sprintf("bill_%d_%s.pdf", billID, time.Now().Format("20060102150405"))
 	filePath := fmt.Sprintf("./static/pdfs/%s", fileName)
 
-	// Generate and save the PDF to the file
 	err = pdf.OutputFileAndClose(filePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to save PDF: %v", err)
 	}
 
-	// Step 4: Return the public URL of the generated PDF
-	return fmt.Sprintf("http://localhost:8080/static/pdfs/%s", fileName), nil
+	// Step 4: Return public URL
+	return fmt.Sprintf("http://localhost:8080/pdf/%s", fileName), nil
 }
 
 // Me is the resolver for the me field.
@@ -269,7 +332,7 @@ func (r *queryResolver) GetBills(ctx context.Context, page int32, size int32) (*
 // GetBillDetails is the resolver for the getBillDetails field.
 func (r *queryResolver) GetBillDetails(ctx context.Context, billID int32) (*model.BillDetails, error) {
 	// Get bill
-	bill, err := r.BillRepo.GetByID(ctx, int(billID))
+	bill, err := r.BillRepo.GetBillDetailsByID(ctx, int(billID))
 	if err != nil {
 		return nil, err
 	}
