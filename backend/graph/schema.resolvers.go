@@ -169,7 +169,6 @@ func (r *mutationResolver) GetBillPDF(ctx context.Context, billID int32) (string
 	return fmt.Sprintf("http://localhost:8080/static/pdfs/%s", fileName), nil
 }
 
-
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	userID, ok := GetUserIDFromContext(ctx)
@@ -267,9 +266,10 @@ func (r *queryResolver) GetBills(ctx context.Context, page int32, size int32) (*
 	}, nil
 }
 
-func (r *queryResolver) GetBillDetails(ctx context.Context, billID int) (*model.BillDetails, error) {
+// GetBillDetails is the resolver for the getBillDetails field.
+func (r *queryResolver) GetBillDetails(ctx context.Context, billID int32) (*model.BillDetails, error) {
 	// Get bill
-	bill, err := r.BillRepo.GetByID(ctx, billID)
+	bill, err := r.BillRepo.GetByID(ctx, int(billID))
 	if err != nil {
 		return nil, err
 	}
@@ -281,20 +281,20 @@ func (r *queryResolver) GetBillDetails(ctx context.Context, billID int) (*model.
 	}
 
 	// Get items
-	items, err := r.BillItem.GetItemsByBillID(ctx, billID)
+	items, err := r.BillItem.GetItemsByBillID(ctx, int(billID))
 	if err != nil {
 		return nil, err
 	}
 
 	// Get payment
-	payment, err := r.PaymentRepo.GetByBillID(ctx, billID)
+	payment, err := r.PaymentRepo.GetByBillID(ctx, int(billID))
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
 
 	// Format result
 	billDetails := &model.BillDetails{
-		BillID:    int(bill.BillID),
+		BillID:    bill.BillID,
 		CreatedAt: bill.CreatedAt,
 		BillType:  bill.BillType,
 		Notes:     bill.Notes,
@@ -323,4 +323,3 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
