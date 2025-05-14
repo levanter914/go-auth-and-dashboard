@@ -267,6 +267,54 @@ func (r *queryResolver) GetBills(ctx context.Context, page int32, size int32) (*
 	}, nil
 }
 
+func (r *queryResolver) GetBillDetails(ctx context.Context, billID int) (*model.BillDetails, error) {
+	// Get bill
+	bill, err := r.BillRepo.GetByID(ctx, billID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get user profile
+	userProfile, err := r.UserRepo.GetProfileByUserID(ctx, int64(bill.BillID))
+	if err != nil {
+		return nil, err
+	}
+
+	// Get items
+	items, err := r.BillItem.GetItemsByBillID(ctx, billID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get payment
+	payment, err := r.PaymentRepo.GetByBillID(ctx, billID)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Format result
+	billDetails := &model.BillDetails{
+		BillID:    int(bill.BillID),
+		CreatedAt: bill.CreatedAt,
+		BillType:  bill.BillType,
+		Notes:     bill.Notes,
+		Subtotal:  bill.Subtotal,
+		Tax:       bill.Tax,
+		Discount:  bill.Discount,
+		Total:     bill.Total,
+		User: &model.UserProfile{
+			FirstName:   userProfile.FirstName,
+			LastName:    userProfile.LastName,
+			PhoneNumber: userProfile.PhoneNumber,
+			Company:     userProfile.Company,
+		},
+		Items:   items,
+		Payment: payment,
+	}
+
+	return billDetails, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
@@ -275,3 +323,4 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+

@@ -54,3 +54,40 @@ type Mutation {
   getBillPDF(billID: Int!): String! 
 }
 
+type BillItem {
+  description: String!
+  quantity: Int!
+  unitPrice: Float!
+  totalPrice: Float!
+}
+
+type Payment {
+  amount: Float!
+  method: String!
+  paidAt: String!
+}
+
+type UserProfile {
+  firstName: String
+  lastName: String
+  phoneNumber: String
+  company: String
+}
+
+type BillDetails {
+  billID: Int!
+  createdAt: String!
+  billType: String!
+  notes: String
+  subtotal: Float
+  tax: Float
+  discount: Float
+  total: Float!
+  user: UserProfile!
+  items: [BillItem!]!
+  payment: Payment
+}
+
+extend type Query {
+  getBillDetails(billID: Int!): BillDetails!
+}

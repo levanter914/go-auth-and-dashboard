@@ -2,6 +2,8 @@
 
 package model
 
+import "time"
+
 type AuthPayload struct {
 	Token string `json:"token"`
 	User  *User  `json:"user"`
@@ -14,6 +16,39 @@ type Bill struct {
 	TotalAmount float64 `json:"totalAmount"`
 }
 
+type BillDetails struct {
+	BillID    int         `json:"billID"`
+	CreatedAt time.Time     `json:"createdAt"`
+	BillType  string      `json:"billType"`
+	Notes     *string     `json:"notes"`
+	Subtotal  *float64    `json:"subtotal"`
+	Tax       *float64    `json:"tax"`
+	Discount  *float64    `json:"discount"`
+	Total     float64     `json:"total"`
+	User      *UserProfile `json:"user"`
+	Items     []*BillItem  `json:"items"`
+	Payment   *Payment     `json:"payment"`
+}
+
+type BillItem struct {
+	Description string  `json:"description"`
+	Quantity    int     `json:"quantity"`
+	UnitPrice   float64 `json:"unitPrice"`
+	TotalPrice  float64 `json:"totalPrice"`
+}
+
+type Payment struct {
+	Amount  float64 `json:"amount"`
+	Method  string  `json:"method"`
+	PaidAt  string  `json:"paidAt"`
+}
+
+type UserProfile struct {
+	FirstName   *string `json:"firstName"`
+	LastName    *string `json:"lastName"`
+	PhoneNumber *string `json:"phoneNumber"`
+	Company     *string `json:"company"`
+}
 type BillPaginationResult struct {
 	TotalCount int32   `json:"totalCount"`
 	Bills      []*Bill `json:"bills,omitempty"`
