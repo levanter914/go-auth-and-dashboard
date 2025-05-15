@@ -108,7 +108,6 @@ export default function Signup() {
           body: profilePic,
         });
   
-        console.log("Upload status:", uploadRes.status);
   
         if (!uploadRes.ok) {
           throw new Error("Failed to upload image to S3");
@@ -117,7 +116,6 @@ export default function Signup() {
 
         const bucketName = "levanter914-s3-user-profile-pictures";
         imageUrl = `https://${bucketName}.s3.amazonaws.com/${fileName}`;
-        console.log("Profile URL:", imageUrl);
       }
   
 
@@ -163,7 +161,6 @@ export default function Signup() {
       }
   
       localStorage.setItem("token", data.data.signup.token);
-      alert("Signup successful!");
       navigate("/");
     } catch (err) {
       console.error("Signup error:", err);

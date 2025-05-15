@@ -23,8 +23,7 @@ export default function Dashboard({ user, setUser }) {
   if (!user) return null;
   useEffect(() => {
     if (user) {
-      console.log("User:", user);
-      console.log("Profile Pic URL:", user.profilePicURL);
+      console.log("User Exists");
     }
   }, [user]);
 
@@ -146,7 +145,7 @@ export default function Dashboard({ user, setUser }) {
         <div className="md:col-span-2 space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-white p-6 rounded-xl shadow-md">
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">Tasks</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">Orders Completed</h3>
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-3xl font-semibold text-indigo-600">5/8</p>

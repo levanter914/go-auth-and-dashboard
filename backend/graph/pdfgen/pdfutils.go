@@ -1,3 +1,4 @@
+// FOR PDF GENERATION BUT CURRENTLY NOT IN USE
 package pdfgen
 
 import (

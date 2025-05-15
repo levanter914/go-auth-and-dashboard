@@ -20,24 +20,20 @@ import (
 const defaultPort = "8080"
 
 func init() {
-	// Load .env.local file
 	err := godotenv.Load(".env.local")
 	if err != nil {
 		log.Println("No .env.local file found or failed to load")
 	}
 
-	// Initialize the database
 	graph.InitDB()
 }
 
 func main() {
-	// Get port from environment variables or use default
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
 
-	// Initialize GraphQL Resolver with BillRepo
 	resolver := &graph.Resolver{
 		BillRepo:    &repo.BillRepo{DB: graph.DB},
 		UserRepo:    &repo.UserRepo{DB: graph.DB},
@@ -46,7 +42,6 @@ func main() {
 		
 	}
 
-	// Create the GraphQL server with the resolver
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
@@ -54,7 +49,6 @@ func main() {
 	srv.Use(extension.Introspection{})
 	srv.Use(extension.AutomaticPersistedQuery{Cache: lru.New[string](100)})
 
-	// Define the /login handler
 	loginHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
@@ -68,7 +62,7 @@ func main() {
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
 		}
-		// Dummy auth logic
+		//DUMMY
 		if creds.Username == "admin" && creds.Password == "password" {
 			json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
 		} else {
@@ -76,22 +70,19 @@ func main() {
 		}
 	})
 
-	// Set up CORS middleware
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"}, // Allowed frontend URL
+		AllowedOrigins:   []string{"http://localhost:5173"}, 
 		AllowCredentials: true,
 		AllowedMethods:   []string{"POST", "GET", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 	}).Handler
 
-	// Serve static files with CORS headers
 	pdfHandler := http.StripPrefix("/pdf/", http.FileServer(http.Dir("./static/pdfs")))
 	http.Handle("/pdf/", corsMiddleware(pdfHandler))
 
-	// Apply handlers
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", corsMiddleware(srv))          // Apply CORS middleware to GraphQL endpoint
-	http.Handle("/login", corsMiddleware(loginHandler)) // Apply CORS middleware to /login endpoint
+	http.Handle("/query", corsMiddleware(srv))
+	http.Handle("/login", corsMiddleware(loginHandler))
 
 	log.Printf("Server started on http://localhost:%s/", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

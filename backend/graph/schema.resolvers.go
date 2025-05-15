@@ -26,7 +26,6 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) 
 		return nil, errors.New("password must be at least 6 characters")
 	}
 
-	// Check if email exists
 	var exists bool
 	err := DB.QueryRow("SELECT EXISTS(SELECT 1 FROM auth WHERE email=$1)", input.Email).Scan(&exists)
 	if err != nil {
@@ -36,7 +35,6 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) 
 		return nil, errors.New("email already in use")
 	}
 
-	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -73,14 +71,13 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.SignupInput) 
 			LastName:      &input.LastName,
 			PhoneNumber:   input.PhoneNumber,
 			Company:       input.Company,
-			ProfilePicURL: input.ProfilePicURL, // Update to ProfilePicURL
+			ProfilePicURL: input.ProfilePicURL, 
 		},
 	}, nil
 }
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*model.AuthPayload, error) {
-	// Query the database for user credentials based on email
 	row := DB.QueryRow(`
         SELECT a.id, a.password, up.first_name, up.last_name, up.phone_number, up.company, up.profilepicurl
         FROM auth a
@@ -123,31 +120,26 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 
 // GetBillPDF is the resolver for the getBillPDF field.
 func (r *mutationResolver) GetBillPDF(ctx context.Context, billID int32) (string, error) {
-	// Step 1: Fetch the bill
 	bill, err := r.Resolver.Query().GetBillDetails(ctx, billID)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch bill details: %v", err)
 	}
 
-	// Step 2: Setup 80mm receipt-style PDF
-	// Step 2: Setup 80mm receipt-style PDF using NewCustom
 	pdf := gofpdf.NewCustom(&gofpdf.InitType{
 		UnitStr: "mm",
 		Size: gofpdf.SizeType{
 			Wd: 100.0,
-			Ht: 300.0, // Use a tall height to accommodate receipts of any length
+			Ht: 300.0,
 		},
 		OrientationStr: "P",
 	})
 	pdf.SetMargins(4, 4, 4)
 	pdf.AddPage()
 
-	// Fonts
 	pdf.SetFont("Courier", "B", 12)
 	pdf.CellFormat(92, 6, "RECEIPT", "", 1, "C", false, 0, "")
 	pdf.Ln(2)
 
-	// Company Name
 	if bill.User != nil && bill.User.Company != nil {
 		pdf.SetFont("Courier", "B", 10)
 		pdf.MultiCell(92, 5, *bill.User.Company, "", "C", false)
@@ -156,12 +148,10 @@ func (r *mutationResolver) GetBillPDF(ctx context.Context, billID int32) (string
 
 	pdf.SetFont("Courier", "", 9)
 
-	// Bill ID and Date
 	pdf.CellFormat(72, 4, fmt.Sprintf("Bill ID: %d", bill.BillID), "", 1, "L", false, 0, "")
 	pdf.CellFormat(72, 4, fmt.Sprintf("Date: %s", bill.CreatedAt), "", 1, "L", false, 0, "")
 	pdf.Ln(1)
 
-	// Header
 	pdf.SetFont("Courier", "B", 9)
 	pdf.CellFormat(35, 5, "Item", "", 0, "L", false, 0, "")
 	pdf.CellFormat(10, 5, "Qty", "", 0, "C", false, 0, "")
@@ -170,7 +160,6 @@ func (r *mutationResolver) GetBillPDF(ctx context.Context, billID int32) (string
 
 	pdf.SetFont("Courier", "", 9)
 
-	// Items
 	for _, item := range bill.Items {
 		pdf.CellFormat(35, 5, item.Description, "", 0, "L", false, 0, "")
 		pdf.CellFormat(10, 5, fmt.Sprintf("%d", item.Quantity), "", 0, "C", false, 0, "")
@@ -178,12 +167,10 @@ func (r *mutationResolver) GetBillPDF(ctx context.Context, billID int32) (string
 		pdf.CellFormat(0, 5, fmt.Sprintf("%.2f", item.TotalPrice), "", 1, "R", false, 0, "")
 	}
 
-	// Separator
 	pdf.Ln(1)
 	pdf.Line(4, pdf.GetY(), 96, pdf.GetY())
 	pdf.Ln(1)
 
-	// Totals
 	if bill.Subtotal != nil {
 		pdf.CellFormat(74, 5, "Subtotal", "", 0, "R", false, 0, "")
 		pdf.CellFormat(0, 5, fmt.Sprintf(" %.2f", *bill.Subtotal), "", 1, "R", false, 0, "")
@@ -202,24 +189,20 @@ func (r *mutationResolver) GetBillPDF(ctx context.Context, billID int32) (string
 	pdf.CellFormat(0, 6, fmt.Sprintf(" %.2f", bill.Total), "", 1, "R", false, 0, "")
 	pdf.Ln(1)
 
-	// Payment info
 	pdf.SetFont("Courier", "", 9)
 	if bill.Payment != nil {
 		pdf.CellFormat(92, 5, fmt.Sprintf("Paid via: %s", bill.Payment.Method), "", 1, "L", false, 0, "")
 	}
 
-	// Notes
 	if bill.Notes != nil && *bill.Notes != "" {
 		pdf.Ln(2)
 		pdf.MultiCell(92, 4, fmt.Sprintf("Notes: %s", *bill.Notes), "", "L", false)
 	}
 
-	// Footer
 	pdf.Ln(4)
 	pdf.SetFont("Courier", "I", 8)
 	pdf.CellFormat(92, 4, "Thank you for your business!", "", 1, "C", false, 0, "")
 
-	// Step 3: Save the PDF
 	fileName := fmt.Sprintf("bill_%d_%s.pdf", billID, time.Now().Format("20060102150405"))
 	filePath := fmt.Sprintf("./static/pdfs/%s", fileName)
 
@@ -228,7 +211,6 @@ func (r *mutationResolver) GetBillPDF(ctx context.Context, billID int32) (string
 		return "", fmt.Errorf("failed to save PDF: %v", err)
 	}
 
-	// Step 4: Return public URL
 	return fmt.Sprintf("http://localhost:8080/pdf/%s", fileName), nil
 }
 
@@ -261,7 +243,7 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 		LastName:      nullStringToPtr(lastName),
 		PhoneNumber:   nullStringToPtr(phoneNumber),
 		Company:       nullStringToPtr(company),
-		ProfilePicURL: nullStringToPtr(profileImageURL), // Updated to ProfilePicURL
+		ProfilePicURL: nullStringToPtr(profileImageURL),
 	}, nil
 }
 
@@ -331,31 +313,26 @@ func (r *queryResolver) GetBills(ctx context.Context, page int32, size int32) (*
 
 // GetBillDetails is the resolver for the getBillDetails field.
 func (r *queryResolver) GetBillDetails(ctx context.Context, billID int32) (*model.BillDetails, error) {
-	// Get bill
 	bill, err := r.BillRepo.GetBillDetailsByID(ctx, int(billID))
 	if err != nil {
 		return nil, err
 	}
 
-	// Get user profile
 	userProfile, err := r.UserRepo.GetProfileByUserID(ctx, int64(bill.BillID))
 	if err != nil {
 		return nil, err
 	}
 
-	// Get items
 	items, err := r.BillItem.GetItemsByBillID(ctx, int(billID))
 	if err != nil {
 		return nil, err
 	}
 
-	// Get payment
 	payment, err := r.PaymentRepo.GetByBillID(ctx, int(billID))
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
 
-	// Format result
 	billDetails := &model.BillDetails{
 		BillID:    bill.BillID,
 		CreatedAt: bill.CreatedAt,

@@ -45,7 +45,7 @@ export default function RecentOrders() {
                 const fetchedBills = res?.data?.getBills?.bills;
 
                 if (Array.isArray(fetchedBills)) {
-                    // Filter duplicates by billID
+
                     const uniqueBills = [];
                     const seen = new Set();
 
@@ -81,10 +81,10 @@ export default function RecentOrders() {
                 },
                 body: JSON.stringify({
                     query: `
-          mutation GetBillPDF($billID: Int!) {
-            getBillPDF(billID: $billID)
-          }
-        `,
+                    mutation GetBillPDF($billID: Int!) {
+                        getBillPDF(billID: $billID)
+                    }
+                `,
                     variables: { billID },
                 }),
             });
@@ -96,24 +96,53 @@ export default function RecentOrders() {
                 throw new Error("PDF URL not returned by server");
             }
 
-            // Fetch PDF as blob
             const pdfResponse = await fetch(pdfUrlFromServer);
             if (!pdfResponse.ok) throw new Error("Failed to fetch PDF file");
 
             const pdfBlob = await pdfResponse.blob();
-
-            // Create object URL from blob
             const blobUrl = URL.createObjectURL(pdfBlob);
 
-            // Set the blob URL to iframe src for preview + print
-            setPdfUrl(blobUrl);
+            const newTab = window.open();
+            if (!newTab) throw new Error("Pop-up blocked");
+
+            newTab.document.write(`
+            <html>
+                <head>
+                    <title>Bill #${billID}</title>
+                    <style>
+                        body, html {
+                            margin: 0;
+                            padding: 0;
+                            height: 100%;
+                        }
+                        iframe {
+                            width: 100%;
+                            height: 100%;
+                            border: none;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <iframe id="pdfFrame" src="${blobUrl}"></iframe>
+                    <script>
+                        const iframe = document.getElementById('pdfFrame');
+                        iframe.onload = function () {
+                            setTimeout(() => {
+                                iframe.contentWindow.focus();
+                                iframe.contentWindow.print();
+                            }, 500); 
+                        };
+                    </script>
+                </body>
+            </html>
+        `);
+            newTab.document.close();
 
         } catch (err) {
             console.error("Failed to generate or fetch PDF URL:", err);
             alert("Could not fetch the PDF. Please try again.");
         }
     };
-
 
 
     const handlePrint = () => {
@@ -125,7 +154,6 @@ export default function RecentOrders() {
     };
 
     useEffect(() => {
-        // Trigger print automatically when the PDF URL is set
         if (pdfUrl) {
             const iframe = iframeRef.current;
             iframe.onload = () => {
