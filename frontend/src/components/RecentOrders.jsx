@@ -81,10 +81,10 @@ export default function RecentOrders() {
                 },
                 body: JSON.stringify({
                     query: `
-                mutation GetBillPDF($billID: Int!) {
-                    getBillPDF(billID: $billID)
-                }
-            `,
+          mutation GetBillPDF($billID: Int!) {
+            getBillPDF(billID: $billID)
+          }
+        `,
                     variables: { billID },
                 }),
             });
@@ -96,18 +96,24 @@ export default function RecentOrders() {
                 throw new Error("PDF URL not returned by server");
             }
 
-            // ✅ Open in a new tab
-            const printWindow = window.open(pdfUrlFromServer, "_blank");
+            // Fetch PDF as blob
+            const pdfResponse = await fetch(pdfUrlFromServer);
+            if (!pdfResponse.ok) throw new Error("Failed to fetch PDF file");
 
-            // Try to auto-trigger print
-            printWindow?.focus();
-            // You **cannot** call .print() reliably unless the PDF is same-origin
+            const pdfBlob = await pdfResponse.blob();
+
+            // Create object URL from blob
+            const blobUrl = URL.createObjectURL(pdfBlob);
+
+            // Set the blob URL to iframe src for preview + print
+            setPdfUrl(blobUrl);
 
         } catch (err) {
             console.error("Failed to generate or fetch PDF URL:", err);
             alert("Could not fetch the PDF. Please try again.");
         }
     };
+
 
 
     const handlePrint = () => {
@@ -191,12 +197,15 @@ export default function RecentOrders() {
             </div>
 
             {/* Hidden iframe that loads the PDF */}
-            <iframe
-                ref={iframeRef}
-                src={pdfUrl}
-                style={{ display: "none" }}
-                title="pdf-print"
-            />
+            {pdfUrl && (
+                <iframe
+                    ref={iframeRef}
+                    src={pdfUrl}
+                    style={{ display: "none" }}
+                    title="pdf-print"
+                />
+            )}
+
         </div>
     );
 }
